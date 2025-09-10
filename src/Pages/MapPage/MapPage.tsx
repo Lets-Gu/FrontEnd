@@ -36,6 +36,7 @@ const MapPage: React.FC = () => {
   const [tab, setTab] = useState<Tab>("mission");
   const isOpen = sliderLevel !== "closed";
   const [showTip, setShowTip] = useState(true);
+  const shouldShowSheet = isOpen || !!selectedMission;
 
   // Reviews state
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -384,198 +385,204 @@ const MapPage: React.FC = () => {
         )}
       </div>
 
-      <BottomSlider
-        isOpen={isOpen}
-        onClose={() => setSliderLevel("closed")}
-        onOpen={() => setSliderLevel("half")}
-        sliderLevel={sliderLevel}
-        setSliderLevel={setSliderLevel}
-      >
-        <div className="sheet-inner">
-          {/* Tabs */}
-          <div className="seg" role="tablist" aria-label="미션/리뷰 탭">
-            <button
-              className={`seg__tab ${tab === "mission" ? "is-active" : ""}`}
-              onClick={() => setTab("mission")}
-            >
-              미션
-            </button>
-            <button
-              className={`seg__tab ${tab === "review" ? "is-active" : ""}`}
-              onClick={() => {
-                setTab("review");
-                setSliderLevel("full");
-              }}
-            >
-              리뷰
-            </button>
-          </div>
+      {shouldShowSheet && (
+        <BottomSlider
+          isOpen={isOpen}
+          onClose={() => setSliderLevel("closed")}
+          onOpen={() => setSliderLevel("half")}
+          sliderLevel={sliderLevel}
+          setSliderLevel={setSliderLevel}
+        >
+          <div className="sheet-inner">
+            {/* Tabs */}
+            <div className="seg" role="tablist" aria-label="미션/리뷰 탭">
+              <button
+                className={`seg__tab ${tab === "mission" ? "is-active" : ""}`}
+                onClick={() => setTab("mission")}
+              >
+                미션
+              </button>
+              <button
+                className={`seg__tab ${tab === "review" ? "is-active" : ""}`}
+                onClick={() => {
+                  setTab("review");
+                  setSliderLevel("full");
+                }}
+              >
+                리뷰
+              </button>
+            </div>
 
-          {/* Body */}
-          {tab === "review" ? (
-            !selectedMission ? (
-              <ReviewHero />
-            ) : (
-              <>
-                <div className="rv-toolbar">
-                  <span className="rv-toolbar__count">
-                    리뷰 수 <strong>{reviews.length}</strong>
-                  </span>
-                  <button
-                    className="rv-toolbar__sort"
-                    onClick={() =>
-                      setSortOrder((s) =>
-                        s === "latest" ? "oldest" : "latest"
-                      )
-                    }
-                  >
-                    ↕ {sortOrder === "latest" ? "최신순" : "오래된순"}
-                  </button>
-                </div>
-
-                <div className="mission-card review-sheet">
-                  {reviewsLoading ? (
-                    <p className="mission-empty">불러오는 중…</p>
-                  ) : reviewsError ? (
-                    <p className="mission-empty">{reviewsError}</p>
-                  ) : reviewsNotFound || !hasReviews ? (
-                    <div
-                      className="review-empty"
-                      style={{ textAlign: "center" }}
+            {/* Body */}
+            {tab === "review" ? (
+              !selectedMission ? (
+                <ReviewHero />
+              ) : (
+                <>
+                  <div className="rv-toolbar">
+                    <span className="rv-toolbar__count">
+                      리뷰 수 <strong>{reviews.length}</strong>
+                    </span>
+                    <button
+                      className="rv-toolbar__sort"
+                      onClick={() =>
+                        setSortOrder((s) =>
+                          s === "latest" ? "oldest" : "latest"
+                        )
+                      }
                     >
-                      <p className="mission-empty">
-                        리뷰를 남기고 <strong>리워드</strong>를 받아보세요!
-                      </p>
-                      <img className="duck" src={duck} alt="리뷰 없음" />
-                    </div>
-                  ) : (
-                    <>
-                      <div className="rv-list">
-                        {sortedReviews.map((r) => {
-                          const isOpen = !!expanded[r.reviewId];
-                          const text = isOpen
-                            ? r.reviewContent
-                            : truncate(r.reviewContent, 90);
-                          return (
-                            <article key={r.reviewId} className="rv-card">
-                              <div className="rv-top">
-                                <div className="rv-avatar" aria-hidden>
-                                  {initials(r.memberName)}
-                                </div>
-                                <div className="rv-meta">
-                                  <div className="rv-name">{r.memberName}</div>
-                                </div>
-                                <time className="rv-date">
-                                  {formatDate(r.reviewDate)}
-                                </time>
-                              </div>
-                              <p
-                                className={`rv-text ${isOpen ? "is-open" : ""}`}
-                              >
-                                {text}
-                              </p>
-                              {r.reviewImageUrl && (
-                                <img
-                                  className="rv-img"
-                                  src={r.reviewImageUrl}
-                                  alt=""
-                                />
-                              )}
-                              {r.reviewContent.length > 90 && (
-                                <button
-                                  className="rv-more"
-                                  onClick={() => toggleExpand(r.reviewId)}
-                                >
-                                  {isOpen ? "접기" : "더보기"}
-                                </button>
-                              )}
-                            </article>
-                          );
-                        })}
+                      ↕ {sortOrder === "latest" ? "최신순" : "오래된순"}
+                    </button>
+                  </div>
+
+                  <div className="mission-card review-sheet">
+                    {reviewsLoading ? (
+                      <p className="mission-empty">불러오는 중…</p>
+                    ) : reviewsError ? (
+                      <p className="mission-empty">{reviewsError}</p>
+                    ) : reviewsNotFound || !hasReviews ? (
+                      <div
+                        className="review-empty"
+                        style={{ textAlign: "center" }}
+                      >
+                        <p className="mission-empty">
+                          리뷰를 남기고 <strong>리워드</strong>를 받아보세요!
+                        </p>
+                        <img className="duck" src={duck} alt="리뷰 없음" />
                       </div>
+                    ) : (
+                      <>
+                        <div className="rv-list">
+                          {sortedReviews.map((r) => {
+                            const isOpen = !!expanded[r.reviewId];
+                            const text = isOpen
+                              ? r.reviewContent
+                              : truncate(r.reviewContent, 90);
+                            return (
+                              <article key={r.reviewId} className="rv-card">
+                                <div className="rv-top">
+                                  <div className="rv-avatar" aria-hidden>
+                                    {initials(r.memberName)}
+                                  </div>
+                                  <div className="rv-meta">
+                                    <div className="rv-name">
+                                      {r.memberName}
+                                    </div>
+                                  </div>
+                                  <time className="rv-date">
+                                    {formatDate(r.reviewDate)}
+                                  </time>
+                                </div>
+                                <p
+                                  className={`rv-text ${
+                                    isOpen ? "is-open" : ""
+                                  }`}
+                                >
+                                  {text}
+                                </p>
+                                {r.reviewImageUrl && (
+                                  <img
+                                    className="rv-img"
+                                    src={r.reviewImageUrl}
+                                    alt=""
+                                  />
+                                )}
+                                {r.reviewContent.length > 90 && (
+                                  <button
+                                    className="rv-more"
+                                    onClick={() => toggleExpand(r.reviewId)}
+                                  >
+                                    {isOpen ? "접기" : "더보기"}
+                                  </button>
+                                )}
+                              </article>
+                            );
+                          })}
+                        </div>
 
-                      {hasNext && (
-                        <button
-                          className="rv-more-btn"
-                          onClick={loadMoreReviews}
-                          disabled={loadingMore}
-                          style={{
-                            width: "100%",
-                            padding: 12,
-                            borderRadius: 12,
-                          }}
-                        >
-                          {loadingMore ? "불러오는 중..." : "더 보기"}
-                        </button>
-                      )}
-                    </>
-                  )}
+                        {hasNext && (
+                          <button
+                            className="rv-more-btn"
+                            onClick={loadMoreReviews}
+                            disabled={loadingMore}
+                            style={{
+                              width: "100%",
+                              padding: 12,
+                              borderRadius: 12,
+                            }}
+                          >
+                            {loadingMore ? "불러오는 중..." : "더 보기"}
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </>
+              )
+            ) : selectedMission ? (
+              <div className="mission-card">
+                <div className="mission-pin" aria-hidden>
+                  <img src={pin} alt="" width={20} height={30} />
                 </div>
-              </>
-            )
-          ) : selectedMission ? (
-            <div className="mission-card">
-              <div className="mission-pin" aria-hidden>
-                <img src={pin} alt="" width={20} height={30} />
+
+                {/* 상태 뱃지 표시 */}
+                <div className="mission-state" aria-live="polite">
+                  {isMissionCompleted(selectedMission) ? (
+                    <span className="badge badge-done">완료</span>
+                  ) : isMissionAccepted(selectedMission) ? (
+                    <span className="badge badge-accepted">수락됨</span>
+                  ) : null}
+                </div>
+
+                <h3 className="mission-title" style={{ marginTop: 4 }}>
+                  {selectedMission.description}
+                </h3>
+                <p className="mission-address">{selectedMission.placeName}</p>
+                <p className="mission-address">{selectedMission.address}</p>
               </div>
-
-              {/* 상태 뱃지 표시 */}
-              <div className="mission-state" aria-live="polite">
-                {isMissionCompleted(selectedMission) ? (
-                  <span className="badge badge-done">완료</span>
-                ) : isMissionAccepted(selectedMission) ? (
-                  <span className="badge badge-accepted">수락됨</span>
-                ) : null}
+            ) : (
+              <div className="mission-card">
+                <p className="mission-empty">마커를 눌러 미션을 선택하세요.</p>
               </div>
+            )}
 
-              <h3 className="mission-title" style={{ marginTop: 4 }}>
-                {selectedMission.description}
-              </h3>
-              <p className="mission-address">{selectedMission.placeName}</p>
-              <p className="mission-address">{selectedMission.address}</p>
-            </div>
-          ) : (
-            <div className="mission-card">
-              <p className="mission-empty">마커를 눌러 미션을 선택하세요.</p>
-            </div>
-          )}
+            {/* CTA */}
+            {tab === "mission" &&
+              selectedMission &&
+              (() => {
+                const accepted = isMissionAccepted(selectedMission);
+                const completed = isMissionCompleted(selectedMission);
+                const disabled = accepted || completed;
+                const label = completed
+                  ? "완료된 미션"
+                  : accepted
+                  ? "이미 수락함"
+                  : "미션 수락하기";
+                const onClick = disabled
+                  ? () => {
+                      setErrorMsg(
+                        completed
+                          ? "이미 완료한 미션이에요."
+                          : "이미 수락한 미션이에요."
+                      );
+                      setSliderLevel("half");
+                    }
+                  : acceptMission;
 
-          {/* CTA */}
-          {tab === "mission" &&
-            selectedMission &&
-            (() => {
-              const accepted = isMissionAccepted(selectedMission);
-              const completed = isMissionCompleted(selectedMission);
-              const disabled = accepted || completed;
-              const label = completed
-                ? "완료된 미션"
-                : accepted
-                ? "이미 수락함"
-                : "미션 수락하기";
-              const onClick = disabled
-                ? () => {
-                    setErrorMsg(
-                      completed
-                        ? "이미 완료한 미션이에요."
-                        : "이미 수락한 미션이에요."
-                    );
-                    setSliderLevel("half");
-                  }
-                : acceptMission;
-
-              return (
-                <button
-                  className={`cta ${disabled ? "is-disabled" : ""}`}
-                  onClick={onClick}
-                  disabled={disabled}
-                  aria-disabled={disabled}
-                >
-                  {label}
-                </button>
-              );
-            })()}
-        </div>
-      </BottomSlider>
+                return (
+                  <button
+                    className={`cta ${disabled ? "is-disabled" : ""}`}
+                    onClick={onClick}
+                    disabled={disabled}
+                    aria-disabled={disabled}
+                  >
+                    {label}
+                  </button>
+                );
+              })()}
+          </div>
+        </BottomSlider>
+      )}
     </div>
   );
 };
